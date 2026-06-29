@@ -94,32 +94,26 @@ $statusKategori = [
 ];
 
 $statusDataset = [];
+foreach ($statusKategori as $label => $listStatus) {
 
-foreach($statusKategori as $label => $listStatus){
+    $data = [];
 
-    $data=[];
+    for ($bulan = 1; $bulan <= 12; $bulan++) {
 
-    for($bulan=1;$bulan<=12;$bulan++){
+        $jumlah = IdCard::whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', now()->year)
+            ->whereIn('status', $listStatus)
+            ->count();
 
-        $jumlah = IdCard::whereMonth('tanggal',$bulan)
-                    ->whereYear('tanggal',now()->year)
-                    ->whereIn('status',$listStatus)
-                    ->count();
-
-        $data[]=$jumlah;
-
+        $data[] = $jumlah;
     }
 
-    $statusDataset[]=[
-
-        'label'=>$label,
-
-        'data'=>$data
-
+    $statusDataset[] = [
+        'label' => $label,
+        'data'  => $data
     ];
-
 }
-        
+
 return view('dashboard', compact(
     'total',
     'hariIni',
@@ -132,5 +126,127 @@ return view('dashboard', compact(
     'statusDataset',
     'labelBulan'
 ));
+
+} 
+public function filterGrafik(Request $request)
+{
+    $status = $request->status;
+    $periode = $request->periode;
+
+    if ($periode == 'hari') {
+
+        $labels = [];
+
+        for ($i = 1; $i <= 31; $i++) {
+            $labels[] = $i;
+        }
+
+    } elseif ($periode == 'bulan') {
+
+        $labels = [
+            'Jan','Feb','Mar','Apr','Mei','Jun',
+            'Jul','Agu','Sep','Okt','Nov','Des'
+        ];
+
+    } else {
+
+        $tahunSekarang = now()->year;
+
+        $labels = [];
+
+        for ($i = $tahunSekarang - 4; $i <= $tahunSekarang; $i++) {
+            $labels[] = $i;
+        }
+
     }
+
+    $warna = [
+        '#2563EB',
+        '#22C55E',
+        '#F59E0B',
+        '#EF4444',
+        '#8B5CF6',
+        '#06B6D4',
+        '#EC4899',
+        '#84CC16',
+        '#F97316',
+        '#64748B'
+    ];
+
+    $statusKategori = [
+
+        'Alih Daya' => ['Alih Daya'],
+        'Dewas' => ['Dewas'],
+        'Honorer / TPBW' => ['Honorer','TPBW'],
+        'KCA' => ['KCA'],
+        'Magang' => ['Magang','Magang Hub'],
+        'PKWT' => ['PKWT'],
+        'Petugas Luar' => ['Petugas Luar'],
+        'Organik' => ['Organik'],
+        'Visitor / VIP' => ['Visitor','VIP'],
+        'Project IOT' => ['Project IOT BGN']
+
+    ];
+
+    $datasets = [];
+
+    $index = 0;
+
+    foreach ($statusKategori as $nama => $listStatus) {
+
+        if ($status != 'semua' && $status != $nama) {
+            continue;
+        }
+
+        $data = [];
+
+        foreach ($labels as $label) {
+
+            $query = IdCard::query();
+
+            $query->whereIn('status', $listStatus);
+
+            if ($periode == 'hari') {
+
+                $query->whereDay('tanggal', $label)
+                      ->whereMonth('tanggal', now()->month)
+                      ->whereYear('tanggal', now()->year);
+
+            } elseif ($periode == 'bulan') {
+
+                $bulan = array_search($label, [
+                    'Jan','Feb','Mar','Apr','Mei','Jun',
+                    'Jul','Agu','Sep','Okt','Nov','Des'
+                ]) + 1;
+
+                $query->whereMonth('tanggal', $bulan)
+                      ->whereYear('tanggal', now()->year);
+
+            } else {
+
+                $query->whereYear('tanggal', $label);
+
+            }
+
+            $data[] = $query->count();
+
+        }
+
+        $datasets[] = [
+
+            'label' => $nama,
+            'data' => $data,
+            'backgroundColor' => $warna[$index]
+
+        ];
+
+        $index++;
+
+    }
+
+    return response()->json([
+        'labels' => $labels,
+        'datasets' => $datasets
+    ]);
+}
 }

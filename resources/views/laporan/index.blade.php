@@ -12,83 +12,153 @@
 
         <div class="card-body">
 
-            <form method="GET" action="{{ route('laporan.index') }}">
+           <form method="GET" action="{{ route('laporan.index') }}">
 
-                <div class="row">
+    <div class="row align-items-end g-3">
 
-                    <div class="col-md-3">
-                        <label>Tanggal Awal</label>
-                        <input type="date"
-                               name="tanggal_awal"
-                               value="{{ request('tanggal_awal') }}"
-                               class="form-control">
-                    </div>
+        <div class="col-md-3">
+            <label class="form-label">Status</label>
 
-                    <div class="col-md-3">
-                        <label>Tanggal Akhir</label>
-                        <input type="date"
-                               name="tanggal_akhir"
-                               value="{{ request('tanggal_akhir') }}"
-                               class="form-control">
-                    </div>
+            <select name="status" class="form-select">
 
-                    <div class="col-md-3">
-                        <label>Status</label>
+                <option value="">Semua Status</option>
 
-                        <select name="status" class="form-control">
+                @foreach($status as $s)
+                    <option value="{{ $s->status }}"
+                        {{ request('status') == $s->status ? 'selected' : '' }}>
+                        {{ $s->status }}
+                    </option>
+                @endforeach
 
-                            <option value="">Semua Status</option>
+            </select>
+        </div>
 
-                            @foreach($status as $s)
-                                <option value="{{ $s->status }}"
-                                    {{ request('status') == $s->status ? 'selected' : '' }}>
-                                    {{ $s->status }}
-                                </option>
-                            @endforeach
+        <div class="col-md-3">
+            <label class="form-label">Lokasi</label>
 
-                        </select>
+            <select name="lokasi" class="form-select">
 
-                    </div>
+                <option value="">Semua Lokasi</option>
 
-                    <div class="col-md-3">
-                        <label>Lokasi</label>
+                @foreach($lokasi as $l)
+                    <option value="{{ $l->lokasi }}"
+                        {{ request('lokasi') == $l->lokasi ? 'selected' : '' }}>
+                        {{ $l->lokasi }}
+                    </option>
+                @endforeach
 
-                        <select name="lokasi" class="form-control">
+            </select>
+        </div>
 
-                            <option value="">Semua Lokasi</option>
+        <div class="col-md-2">
+            <label class="form-label">Periode</label>
 
-                            @foreach($lokasi as $l)
-                                <option value="{{ $l->lokasi }}"
-                                    {{ request('lokasi') == $l->lokasi ? 'selected' : '' }}>
-                                    {{ $l->lokasi }}
-                                </option>
-                            @endforeach
+            <select
+                name="periode"
+                id="periode"
+                class="form-select">
 
-                        </select>
+                <option value="">Semua Data</option>
 
-                    </div>
+                <option value="hari"
+                    {{ request('periode')=='hari'?'selected':'' }}>
+                    Hari Ini
+                </option>
 
-                </div>
+                <option value="minggu"
+                    {{ request('periode')=='minggu'?'selected':'' }}>
+                    Minggu Ini
+                </option>
 
-                <div class="mt-3">
+                <option value="bulan"
+                    {{ request('periode')=='bulan'?'selected':'' }}>
+                    Bulan Ini
+                </option>
 
-                    <button class="btn btn-primary">
-                        <i class="bi bi-search"></i> Filter
-                    </button>
+                <option value="tahun"
+                    {{ request('periode')=='tahun'?'selected':'' }}>
+                    Tahun Ini
+                </option>
 
-                    <a href="{{ route('laporan.index') }}"
-                       class="btn btn-secondary">
-                        Reset
-                    </a>
+                <option value="custom"
+                    {{ request('periode')=='custom'?'selected':'' }}>
+                    Custom
+                </option>
 
-                </div>
+            </select>
 
-            </form>
+        </div>
+
+        <div class="col-md-4">
+
+            <label class="form-label">Search</label>
+
+            <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Cari Nama, NP, Operator..."
+                value="{{ request('search') }}">
 
         </div>
 
     </div>
 
+    <div
+        id="tanggalCustom"
+        class="row mt-3"
+        style="{{ request('periode')=='custom' ? '' : 'display:none;' }}">
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Tanggal Awal
+            </label>
+
+            <input
+                type="date"
+                name="tanggal_awal"
+                class="form-control"
+                value="{{ request('tanggal_awal') }}">
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Tanggal Akhir
+            </label>
+
+            <input
+                type="date"
+                name="tanggal_akhir"
+                class="form-control"
+                value="{{ request('tanggal_akhir') }}">
+
+        </div>
+
+    </div>
+
+    <div class="mt-4">
+
+        <button class="btn btn-primary">
+
+            <i class="bi bi-search"></i>
+
+            Filter
+
+        </button>
+
+        <a href="{{ route('laporan.index') }}"
+           class="btn btn-outline-secondary">
+
+            Reset
+
+        </a>
+
+    </div>
+
+</form>
 
     <div class="card card-custom">
 
@@ -163,8 +233,7 @@
 
             <div class="mt-3">
 
-                {{ $data->withQueryString()->links() }}
-
+                {{ $data->withQueryString()->links('pagination::bootstrap-5') }}
             </div>
 
         </div>
@@ -172,5 +241,28 @@
     </div>
 
 </div>
+@push('scripts')
 
+<script>
+
+const periode = document.getElementById('periode');
+const tanggal = document.getElementById('tanggalCustom');
+
+periode.addEventListener('change',function(){
+
+    if(this.value=="custom"){
+
+        tanggal.style.display='flex';
+
+    }else{
+
+        tanggal.style.display='none';
+
+    }
+
+});
+
+</script>
+
+@endpush
 @endsection

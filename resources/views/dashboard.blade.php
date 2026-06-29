@@ -3,10 +3,6 @@
 @section('content')
 
 <div class="container-fluid">
-{{-- ===========================
-        CARD STATISTIK
-=========================== --}}
-
 <div class="row g-4 mb-4">
 
     {{-- Total Data --}}
@@ -44,7 +40,6 @@
 
     </div>
 
-    {{-- Hari Ini --}}
     <div class="col-xl-3 col-md-6">
 
         <div class="stats-card">
@@ -81,7 +76,6 @@
 
     </div>
 
-    {{-- Bulan --}}
     <div class="col-xl-3 col-md-6">
 
         <div class="stats-card">
@@ -118,7 +112,6 @@
 
     </div>
 
-    {{-- Tahun --}}
     <div class="col-xl-3 col-md-6">
 
         <div class="stats-card">
@@ -253,7 +246,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!ctx) return;
 
-    new Chart(ctx, {
+    const filterStatus = document.getElementById('filterStatus');
+    const filterPeriode = document.getElementById('filterPeriode');
+
+    let chart = new Chart(ctx, {
 
         type: 'bar',
 
@@ -334,10 +330,8 @@ document.addEventListener('DOMContentLoaded', function () {
             maintainAspectRatio: false,
 
             interaction: {
-
                 mode: 'index',
                 intersect: false
-
             },
 
             plugins: {
@@ -349,16 +343,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     position: 'right',
 
                     labels: {
-
                         boxWidth: 12,
                         boxHeight: 12,
-
                         font: {
-
                             size: 11
-
                         }
-
                     }
 
                 }
@@ -368,27 +357,17 @@ document.addEventListener('DOMContentLoaded', function () {
             scales: {
 
                 x: {
-
                     stacked: false,
-
                     grid: {
-
                         display: false
-
                     }
-
                 },
 
                 y: {
-
                     beginAtZero: true,
-
                     ticks: {
-
                         precision: 0
-
                     }
-
                 }
 
             }
@@ -396,6 +375,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     });
+
+    function loadGrafik() {
+
+        fetch(`/dashboard/filter?status=${filterStatus.value}&periode=${filterPeriode.value}`)
+
+            .then(response => response.json())
+
+            .then(res => {
+
+                chart.data.labels = res.labels;
+                chart.data.datasets = res.datasets;
+
+                chart.update();
+
+            })
+
+            .catch(error => console.log(error));
+
+    }
+
+    filterStatus.addEventListener('change', loadGrafik);
+    filterPeriode.addEventListener('change', loadGrafik);
 
 });
 
