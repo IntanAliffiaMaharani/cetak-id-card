@@ -8,13 +8,33 @@ use App\Models\IdCard;
 
 class IdCardController extends Controller
 {
-    public function index()
-    {
-        $idcards = IdCard::latest()->get();
+   public function index(Request $request)
+{
+    $query = IdCard::query();
 
-        return view('idcards.index', compact('idcards'));
+    // Search
+    if ($request->filled('search')) {
+
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('nama', 'like', "%{$search}%")
+              ->orWhere('np', 'like', "%{$search}%")
+              ->orWhere('status', 'like', "%{$search}%")
+              ->orWhere('lokasi', 'like', "%{$search}%")
+              ->orWhere('operator', 'like', "%{$search}%");
+
+        });
     }
 
+    $idcards = $query
+        ->latest()
+        ->paginate(15)
+        ->withQueryString();
+
+    return view('idcards.index', compact('idcards'));
+}
     public function create()
     {
         return view('idcards.create');

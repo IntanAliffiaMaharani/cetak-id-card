@@ -578,6 +578,10 @@ body{
     padding:12px 22px;
 
 }
+.pagination svg{
+    width:18px !important;
+    height:18px !important;
+}
     </style>
 
 </head>
